@@ -1,0 +1,22 @@
+# Core framework
+streamlit==1.40.1
+
+# Visualization
+plotly==5.24.1
+
+# Data processing
+pandas==2.2.3
+numpy==2.1.3
+fredapi==0.5.2
+
+# ML/NLP
+sentence-transformers==3.3.1
+scikit-learn==1.5.2
+umap-learn==0.5.7
+
+# Time series analysis (future: PELT change point detection)
+# ruptures==1.1.9
+
+# Dependencies for sentence-transformers
+torch==2.5.1
+transformers==4.46.3
