@@ -3,6 +3,8 @@
 Full hawk-dove score history with rate decisions overlaid.
 """
 import streamlit as st
+from src.data.loader import load_fomc_data
+from src.viz.charts import create_sentiment_timeline, create_score_distribution
 
 st.title("Hawk-Dove Score Timeline")
 st.caption("Language sentiment projected onto hawk-dove axis from Trillion Dollar Words dataset")
@@ -28,20 +30,20 @@ with st.sidebar:
 
     show_raw = st.checkbox("Show raw scores", value=True)
     show_fed_funds = st.checkbox("Overlay Fed funds rate", value=True)
-    # show_changepoints = st.checkbox("Show change points", value=False)  # Future: PELT
 
-# Main chart placeholder
+# Load data
+df = load_fomc_data()
+latest_score = df.iloc[-1]['hawk_dove_score']
+
+# Main chart
 st.subheader("Hawk-Dove Score Over Time")
 
-# TODO: Connect to src/viz/charts.py
-st.info("📊 Hawk-Dove Timeline Chart Placeholder")
-st.caption("""
-- x: FOMC meeting date
-- y: hawk-dove projection score
-- Line: EWM smoothed score (primary)
-- Dots: raw per-statement scores
-- Secondary axis: Fed funds rate (if toggled)
-""")
+fig = create_sentiment_timeline(
+    df,
+    show_raw=show_raw,
+    show_fed_funds=show_fed_funds
+)
+st.plotly_chart(fig, use_container_width=True)
 
 # Key finding callout
 st.success("""
@@ -53,7 +55,9 @@ st.divider()
 
 # Score distribution histogram
 st.subheader("Score Distribution")
-st.info("📊 Distribution histogram placeholder - 'You are here' marker for latest statement")
+
+fig_dist = create_score_distribution(df, latest_score)
+st.plotly_chart(fig_dist, use_container_width=True)
 
 with st.expander("How is this calculated?"):
     st.write("""

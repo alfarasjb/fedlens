@@ -14,8 +14,6 @@ sentence-transformers==3.3.1
 scikit-learn==1.5.2
 umap-learn==0.5.7
 
-# Time series analysis (future: PELT change point detection)
-# ruptures==1.1.9
 
 # Dependencies for sentence-transformers
 torch==2.5.1

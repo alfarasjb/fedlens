@@ -3,6 +3,8 @@
 How much the Fed's language is changing meeting-to-meeting, and where the regime breaks are.
 """
 import streamlit as st
+from src.data.loader import load_fomc_data
+from src.viz.charts import create_drift_chart
 
 st.title("Language Drift Velocity")
 st.caption("Cosine distance between consecutive FOMC meeting embeddings")
@@ -20,25 +22,14 @@ with st.sidebar:
 
     show_thresholds = st.checkbox("Show z-score threshold lines", value=True)
 
-    # Future: PELT change point detection
-    # pelt_sensitivity = st.selectbox(
-    #     "Change Point Sensitivity",
-    #     options=["Low", "Medium", "High"],
-    #     index=1,
-    #     help="PELT penalty parameter"
-    # )
+# Load data
+df = load_fomc_data()
 
 # Main chart - drift velocity
 st.subheader("Drift from Previous Meeting")
 
-# TODO: Connect to src/viz/charts.py
-st.info("📊 Drift Velocity Chart Placeholder")
-st.caption("""
-- x: FOMC meeting date
-- y: cosine distance from previous meeting
-- Spikes = big language changes
-- Horizontal dashed lines at 1σ and 2σ thresholds
-""")
+fig = create_drift_chart(df, show_thresholds=show_thresholds)
+st.plotly_chart(fig, use_container_width=True)
 
 # Key finding callout
 st.success("""
@@ -48,15 +39,11 @@ st.success("""
 
 st.divider()
 
-# Future: Change points table (PELT)
-# st.subheader("Detected Regime Changes")
-# st.info("📋 Change point detection coming soon (PELT algorithm)")
-st.info("💡 **Coming Soon:** Automated regime change detection using PELT algorithm")
-
 with st.expander("How is this calculated?"):
     st.write("""
     Drift velocity is the cosine distance between consecutive meeting centroids in 768-dimensional
     embedding space (all-mpnet-base-v2).
 
-    Change points are detected using PELT (Pruned Exact Linear Time) algorithm via ruptures library.
+    High drift values indicate significant language shifts between FOMC meetings, often corresponding
+    to major policy pivots (e.g., 2008 GFC, 2020 COVID, 2022 inflation surge).
     """)

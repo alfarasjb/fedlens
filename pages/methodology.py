@@ -16,11 +16,11 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.markdown("**📝 Medium Article**")
-    st.caption("(link when published)")
+    st.caption("[A Geometric Approach to Measuring Fed Sentiment, 2006–2026](https://medium.com/@alfarasjb/i-scored-every-fomc-statement-from-2006-2026-on-a-continuous-hawkish-dovish-scale-2f35a5f1a369)")
 
 with col2:
     st.markdown("**💻 GitHub Repo**")
-    st.caption("(link to repo)")
+    st.caption("[FedLens](https://github.com/alfarasjb/fedlens)")
 
 st.divider()
 
@@ -55,15 +55,6 @@ with st.expander("📊 Drift Velocity"):
     High drift = significant language change between meetings.
 
     We compute z-scores to identify statistically significant shifts (> 1σ or 2σ).
-    """)
-
-with st.expander("🔍 Change Point Detection"):
-    st.write("""
-    **PELT** (Pruned Exact Linear Time) algorithm via the `ruptures` library.
-
-    Detects regime changes in the hawk-dove score time series.
-
-    Default penalty = 10 (medium sensitivity). Higher penalty = fewer change points.
     """)
 
 with st.expander("❓ Why Not LLM Classification?"):
