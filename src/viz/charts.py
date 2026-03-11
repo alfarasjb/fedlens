@@ -8,15 +8,17 @@ import pandas as pd
 
 def create_sentiment_timeline(
     df: pd.DataFrame,
-    show_raw: bool = True,
-    show_fed_funds: bool = False
+    show_fed_funds: bool = False,
+    fed_funds_data: pd.Series = None,
+    ewm_span: int = 15
 ) -> go.Figure:
     """Create hawk-dove score timeline chart
 
     Args:
         df: DataFrame with date, hawk_dove_score columns
-        show_raw: Show raw scores as scatter
         show_fed_funds: Overlay Fed funds rate on secondary axis
+        fed_funds_data: Fed funds rate time series (if show_fed_funds=True)
+        ewm_span: Exponentially weighted moving average span
 
     Returns:
         Plotly figure
@@ -25,27 +27,82 @@ def create_sentiment_timeline(
     df = df.copy()
     df['date'] = pd.to_datetime(df['date'])
 
-    fig = go.Figure()
+    # Calculate EWM smoothed scores
+    df['ewm_score'] = df['hawk_dove_score'].ewm(span=ewm_span).mean()
 
-    # Main line - hawk-dove scores
-    fig.add_trace(go.Scatter(
+    # Create figure with secondary y-axis if showing fed funds
+    from plotly.subplots import make_subplots
+
+    if show_fed_funds and fed_funds_data is not None:
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+    else:
+        fig = go.Figure()
+
+    # Primary line - raw hawk-dove scores
+    primary_trace = go.Scatter(
         x=df['date'],
         y=df['hawk_dove_score'],
-        mode='lines+markers' if show_raw else 'lines',
-        name='Hawk-Dove Score',
+        mode='lines',
+        name='Fed Sentiment',
         line=dict(color='steelblue', width=2),
-        marker=dict(size=4) if show_raw else None
-    ))
+        hovertemplate='%{y:.3f}<extra></extra>'
+    )
+
+    if show_fed_funds and fed_funds_data is not None:
+        fig.add_trace(primary_trace, secondary_y=False)
+    else:
+        fig.add_trace(primary_trace)
+
+    # EWM smoothed line (subtle, background)
+    ewm_trace = go.Scatter(
+        x=df['date'],
+        y=df['ewm_score'],
+        mode='lines',
+        name=f'EWM (span={ewm_span})',
+        line=dict(color='lightgray', width=2, dash='dot'),
+        opacity=0.5,
+        hovertemplate='EWM: %{y:.3f}<extra></extra>'
+    )
+
+    if show_fed_funds and fed_funds_data is not None:
+        fig.add_trace(ewm_trace, secondary_y=False)
+    else:
+        fig.add_trace(ewm_trace)
+
+    # Fed funds overlay if requested
+    if show_fed_funds and fed_funds_data is not None:
+        fig.add_trace(
+            go.Scatter(
+                x=fed_funds_data.index,
+                y=fed_funds_data.values,
+                mode='lines',
+                name='Fed Funds Rate',
+                line=dict(color='coral', width=1.5, dash='dot'),
+                opacity=0.7
+            ),
+            secondary_y=True
+        )
+
+        fig.update_yaxes(title_text="Fed Sentiment", secondary_y=False)
+        fig.update_yaxes(title_text="Fed Funds Rate (%)", secondary_y=True)
+    else:
+        fig.update_layout(yaxis_title="Fed Sentiment")
 
     # Zero line
     fig.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
 
     fig.update_layout(
-        title="Hawk-Dove Score Timeline",
+        title="Fed Sentiment Over Time",
         xaxis_title="Date",
-        yaxis_title="Hawk-Dove Score",
         height=500,
-        hovermode='x unified'
+        hovermode='x unified',
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        )
     )
 
     return fig
@@ -167,9 +224,8 @@ def create_score_distribution(df: pd.DataFrame, latest_score: float) -> go.Figur
         x=df['hawk_dove_score'],
         nbinsx=30,
         marker=dict(
-            color=df['hawk_dove_score'],
-            colorscale='RdBu_r',
-            line=dict(color='white', width=1)
+            color='lightsteelblue',
+            line=dict(color='steelblue', width=1)
         ),
         name='Distribution'
     ))
@@ -189,7 +245,7 @@ def create_score_distribution(df: pd.DataFrame, latest_score: float) -> go.Figur
 
     fig.update_layout(
         title="Score Distribution",
-        xaxis_title="Hawk-Dove Score",
+        xaxis_title="Fed Sentiment",
         yaxis_title="Count",
         height=300,
         showlegend=False
@@ -226,7 +282,7 @@ def create_mini_sentiment_chart(df: pd.DataFrame, years: int | None = None) -> g
         x=recent_df['date'],
         y=recent_df['hawk_dove_score'],
         mode='lines+markers',
-        name='Hawk-Dove Score',
+        name='Fed Sentiment',
         line=dict(color='steelblue', width=2),
         marker=dict(size=6)
     ))
@@ -243,7 +299,7 @@ def create_mini_sentiment_chart(df: pd.DataFrame, years: int | None = None) -> g
     fig.update_layout(
         title=title,
         xaxis_title="Date",
-        yaxis_title="Hawk-Dove Score",
+        yaxis_title="Fed Sentiment",
         height=300,
         showlegend=False,
         margin=dict(l=40, r=40, t=40, b=40),

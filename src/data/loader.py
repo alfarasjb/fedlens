@@ -5,12 +5,15 @@ Loads pre-computed FOMC data and model artifacts with Streamlit caching.
 import os
 import pickle
 from typing import Any
+from dotenv import load_dotenv
 
 import streamlit as st
 import pandas as pd
 import numpy as np
 from sentence_transformers import SentenceTransformer
-from fredapi import Fred 
+from fredapi import Fred  
+
+load_dotenv()
 
 @st.cache_resource
 def load_embedding_model() -> SentenceTransformer:

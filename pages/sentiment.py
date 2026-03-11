@@ -3,10 +3,11 @@
 Full hawk-dove score history with rate decisions overlaid.
 """
 import streamlit as st
+import pandas as pd
 from src.data.loader import load_fomc_data
 from src.viz.charts import create_sentiment_timeline, create_score_distribution
 
-st.title("Hawk-Dove Score Timeline")
+st.title("Fed Sentiment Timeline")
 st.caption("Language sentiment projected onto hawk-dove axis from Trillion Dollar Words dataset")
 
 # Sidebar controls
@@ -28,20 +29,34 @@ with st.sidebar:
         help="Exponentially weighted moving average smoothing"
     )
 
-    show_raw = st.checkbox("Show raw scores", value=True)
     show_fed_funds = st.checkbox("Overlay Fed funds rate", value=True)
 
 # Load data
 df = load_fomc_data()
+
+# Filter by date range
+df['date'] = pd.to_datetime(df['date'])
+df_filtered = df[
+    (df['date'].dt.year >= date_range[0]) &
+    (df['date'].dt.year <= date_range[1])
+].copy()
+
 latest_score = df.iloc[-1]['hawk_dove_score']
 
+# Load Fed funds data if needed
+fed_funds_data = None
+if show_fed_funds:
+    from src.data.loader import load_fed_funds_rate
+    fed_funds_data = load_fed_funds_rate()
+
 # Main chart
-st.subheader("Hawk-Dove Score Over Time")
+st.subheader("Fed Sentiment Over Time")
 
 fig = create_sentiment_timeline(
-    df,
-    show_raw=show_raw,
-    show_fed_funds=show_fed_funds
+    df_filtered,
+    show_fed_funds=show_fed_funds,
+    fed_funds_data=fed_funds_data,
+    ewm_span=ewm_span
 )
 st.plotly_chart(fig, use_container_width=True)
 

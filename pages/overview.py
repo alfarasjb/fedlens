@@ -41,7 +41,7 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
     score = latest['hawk_dove_score']
     sentiment = "Hawkish" if score > 0 else "Dovish"
-    st.metric("Latest Hawk-Dove Score", f"{score:+.3f}", delta=sentiment)
+    st.metric("Latest Fed Sentiment", f"{score:+.3f}", delta=sentiment)
 
 with col2:
     drift_val = latest['drift']
@@ -61,8 +61,8 @@ with col4:
 
 st.divider()
 
-# Mini hawk-dove chart - last 3 years
-st.subheader("Recent Hawk-Dove Trend")
+# Mini sentiment chart - last 3 years
+st.subheader("Recent Sentiment Trend")
 st.caption("Last 3 years. Full timeline on Sentiment page.")
 
 fig = create_mini_sentiment_chart(df, years=3)

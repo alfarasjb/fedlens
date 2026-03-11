@@ -3,6 +3,7 @@
 How much the Fed's language is changing meeting-to-meeting, and where the regime breaks are.
 """
 import streamlit as st
+import pandas as pd
 from src.data.loader import load_fomc_data
 from src.viz.charts import create_drift_chart
 
@@ -25,10 +26,17 @@ with st.sidebar:
 # Load data
 df = load_fomc_data()
 
+# Filter by date range
+df['date'] = pd.to_datetime(df['date'])
+df_filtered = df[
+    (df['date'].dt.year >= date_range[0]) &
+    (df['date'].dt.year <= date_range[1])
+].copy()
+
 # Main chart - drift velocity
 st.subheader("Drift from Previous Meeting")
 
-fig = create_drift_chart(df, show_thresholds=show_thresholds)
+fig = create_drift_chart(df_filtered, show_thresholds=show_thresholds)
 st.plotly_chart(fig, use_container_width=True)
 
 # Key finding callout

@@ -38,7 +38,7 @@ st.info("📊 2D UMAP Scatter Placeholder")
 # Color options
 color_by = st.radio(
     "Color by:",
-    options=["Year", "Fed Chair", "Hawk-Dove Score"],
+    options=["Year", "Fed Chair", "Fed Sentiment"],
     horizontal=True
 )
 

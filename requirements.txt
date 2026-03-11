@@ -18,3 +18,4 @@ umap-learn==0.5.7
 # Dependencies for sentence-transformers
 torch==2.5.1
 transformers==4.46.3
+python-dotenv==1.0.1
