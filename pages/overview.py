@@ -6,10 +6,66 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 from src.data.loader import load_fomc_data
+from src.data.updater import update_fomc_data, reprocess_existing_data, get_last_update_time
 from src.viz.charts import create_mini_sentiment_chart
 
 st.title("FedLens")
 st.caption("Language shifts between FOMC meetings lead actual rate decisions by 1–2 meetings. This dashboard tracks that drift in real time.")
+
+# Sidebar - Data Update Controls
+with st.sidebar:
+    st.header("Data Management")
+
+    last_update = get_last_update_time()
+    st.caption(f"Last updated: {last_update}")
+
+    # Option 1: Fetch new data from Fed website
+    if st.button("🌐 Fetch New Statements", type="primary", use_container_width=True):
+        with st.spinner("Fetching latest FOMC statements from Fed website..."):
+            try:
+                num_new, message = update_fomc_data()
+
+                if num_new > 0:
+                    st.success(message)
+                    st.info("💡 Refresh the page (F5) to see updated data")
+                    # Clear Streamlit cache to reload data
+                    st.cache_data.clear()
+                else:
+                    st.info(message)
+            except Exception as e:
+                st.error(f"Fetch failed: {str(e)}")
+                st.caption("Try 'Reprocess Data' if you've manually updated the CSV")
+
+    # Option 2: Reprocess existing data
+    if st.button("🔄 Reprocess Data", use_container_width=True):
+        with st.spinner("Recalculating embeddings and scores..."):
+            try:
+                success, message = reprocess_existing_data()
+
+                if success:
+                    st.success(message)
+                    st.info("💡 Refresh the page (F5) to see updated calculations")
+                    st.cache_data.clear()
+                else:
+                    st.error(message)
+            except Exception as e:
+                st.error(f"Reprocess failed: {str(e)}")
+
+    st.divider()
+
+    with st.expander("ℹ️ About Updates"):
+        st.caption("""
+        **Fetch New Statements**: Downloads new FOMC statement PDFs
+        from the Federal Reserve website using predictable URLs
+        (pattern: monetary{YYYYMMDD}a1.pdf). Checks recent meeting
+        dates and adds any new statements found.
+
+        **Reprocess Data**: Recalculates embeddings and scores from
+        the existing CSV file. Use this if you've manually added
+        statements to fomc_statements.csv.
+
+        After updating, refresh the page (F5) to reload the data.
+        """)
 
 st.divider()
 
